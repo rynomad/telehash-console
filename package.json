@@ -1,6 +1,6 @@
 {
   "name": "telehash-console",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "script execution over telehash channel",
   "main": "index.js",
   "scripts": {
@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "debug": "^2.2.0",
     "lob-enc": "0.0.17"
   }
 }
