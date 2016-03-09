@@ -53,10 +53,25 @@ exports.mesh = function(mesh, cbExt)
 
   ext.link = function(link, cbLink)
   {
-    link.console = (script) => {
+    link.console = (script, cb) => {
       var open = {json:{type:'console', cmd: script}};
-      open.json.seq = 1; // always reliable
+
+      if (!cb){
+        open.json.seq = 1; // always reliable
+      }
+
       var channel = link.x.channel(open);
+
+      channel.receiving = (err, packet, cbMore) => {
+        if (err)
+          cb(err)
+
+        if (packet){
+          console.log("receiving packet", packet.json)
+          cb(null, packet.json)
+          cbMore()
+        }
+      }
 
       channel.exec = (values) => new Promise((res, rej) => {
         channel.receiving = (err, packet, cbMore) => {
