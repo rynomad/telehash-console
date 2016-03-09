@@ -67,7 +67,6 @@ exports.mesh = function(mesh, cbExt)
           cb(err)
 
         if (packet){
-          console.log("receiving packet", packet.json)
           cb(null, packet.json)
           cbMore()
         }
