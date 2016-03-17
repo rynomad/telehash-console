@@ -3,6 +3,7 @@
 var log = require('debug')('Console')
 var lob = require('lob-enc');
 var vm = require('vm')
+var EventEmitter = require("events").EventEmitter;
 
 // implements https://github.com/telehash/telehash.org/blob/v3/v3/channels/stream.md
 exports.name = 'console';
@@ -53,39 +54,31 @@ exports.mesh = function(mesh, cbExt)
 
   ext.link = function(link, cbLink)
   {
-    link.console = (script, cb) => {
-      var open = {json:{type:'console', cmd: script}};
+    link.console = (script, interval) => {
 
-      if (!cb){
-        open.json.seq = 1; // always reliable
-      }
+      var open = {json:{type:'console', cmd: script}};
+      if (interval) 
+        open.json.interval = interval;
+
+      var emitter = new EventEmitter();
 
       var channel = link.x.channel(open);
 
       channel.receiving = (err, packet, cbMore) => {
         if (err)
-          cb(err)
+          return err;
 
         if (packet){
-          cb(null, packet.json)
+          emitter.emit('data', packet.json)
           cbMore()
         }
       }
 
-      channel.exec = (values) => new Promise((res, rej) => {
-        channel.receiving = (err, packet, cbMore) => {
-          if (err)
-            return rej(err)
-          if (packet)
-            res(packet.json)
+      channel.send(open)
 
-          cbMore()
-        }
-        channel.send({json : {values : values}})
-      })
-      channel.send(open);
+      emitter.on('end', () => clearInterval(toclear))
 
-      return channel;
+      return emitter;
     }
 
     cbLink();
