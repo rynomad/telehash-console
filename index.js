@@ -54,29 +54,35 @@ exports.mesh = function(mesh, cbExt)
 
   ext.link = function(link, cbLink)
   {
-    link.console = (script, interval) => {
+    link.console = (script, cbRes) => {
 
       var open = {json:{type:'console', cmd: script}};
-      if (interval) 
-        open.json.interval = interval;
 
       var emitter = new EventEmitter();
 
       var channel = link.x.channel(open);
+      var done = false;
 
       channel.receiving = (err, packet, cbMore) => {
+        done = true;
         if (err)
-          return err;
+          return cbRes(err, null);
 
         if (packet){
           emitter.emit('data', packet.json)
+          cbRes(null, packet.json)
           cbMore()
         }
       }
 
+      setTimeout(() => {
+        if (!done)
+          cbRes(new Error("timeout"),null)
+      }, 20000)
+
       channel.send(open)
 
-      emitter.on('end', () => clearInterval(toclear))
+      //emitter.on('end', () => clearInterval(toclear))
 
       return emitter;
     }
