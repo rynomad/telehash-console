@@ -66,17 +66,18 @@ exports.mesh = function(mesh, cbExt)
       channel.receiving = (err, packet, cbMore) => {
         done = true;
         if (err)
-          return cbRes(err, null);
+          return cbRes && cbRes(err, null);
 
         if (packet){
           emitter.emit('data', packet.json)
-          cbRes(null, packet.json)
+          if (cbRes)
+            cbRes(null, packet.json)
           cbMore()
         }
       }
 
       setTimeout(() => {
-        if (!done)
+        if (!done && cbRes)
           cbRes(new Error("timeout"),null)
       }, 20000)
 
